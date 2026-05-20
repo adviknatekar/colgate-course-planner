@@ -1,0 +1,2999 @@
+/* UNIVERSITY CONFIG: All data comes from university.json.
+   To adapt for another university, replace university.json only.
+   The app reads _meta, graduation_requirements, majors, and courses. */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Colgate Course Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #0f0f0f;
+      --color-surface: #1a1a1a;
+      --color-surface-2: #242424;
+      --color-border: #2e2e2e;
+      --color-primary: #821019;
+      --color-primary-hover: #9e1520;
+      --color-text: #f0ede8;
+      --color-text-muted: #888888;
+      --color-success: #2a7d4f;
+      --color-warning: #b87333;
+      --color-danger: #c0392b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: "DM Sans", system-ui, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      padding-bottom: 86px;
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 28px;
+      display: grid;
+      gap: 24px;
+    }
+
+    section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(26, 26, 26, 0.04);
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .placeholder {
+      color: var(--color-text-muted);
+    }
+
+    /* ── Site header ─────────────────────────────────────────── */
+    .site-header { border-bottom: 1px solid var(--color-border); background: var(--color-surface); }
+    .site-header-inner { width: min(1440px, 100%); margin: 0 auto; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .site-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .site-logo-mark { width: 30px; height: 30px; border-radius: 6px; background: var(--color-primary); display: grid; place-items: center; font-family: "DM Serif Display", serif; font-size: 16px; color: #fff; flex-shrink: 0; }
+    .site-logo-text { font-size: 15px; font-weight: 600; color: var(--color-text); letter-spacing: -0.01em; }
+    .site-logo-text span { color: var(--color-primary); }
+    .site-nav { display: flex; align-items: center; gap: 6px; }
+    .site-nav a { color: var(--color-text-muted); font-size: 13px; font-weight: 500; padding: 6px 10px; border-radius: 6px; text-decoration: none; transition: color 140ms, background 140ms; }
+    .site-nav a:hover { color: var(--color-text); background: var(--color-surface-2); text-decoration: none; }
+    .site-nav a.nav-contact { border: 1px solid var(--color-border); color: var(--color-text); padding: 5px 12px; }
+    .site-nav a.nav-contact:hover { border-color: var(--color-primary); color: var(--color-primary); background: transparent; }
+
+    /* ── Hero title banner ────────────────────────────────────── */
+    .site-hero { border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 36px 28px 28px; }
+    .site-hero-inner { width: min(1440px, 100%); margin: 0 auto; }
+    .site-hero h1 { font-family: "DM Serif Display", serif; font-size: clamp(28px, 4vw, 42px); font-weight: 400; line-height: 1.15; color: var(--color-text); margin: 0 0 10px; }
+    .site-hero h1 em { color: var(--color-primary); font-style: italic; }
+    .site-hero p { color: var(--color-text-muted); font-size: 15px; line-height: 1.6; max-width: 560px; margin: 0; }
+    .site-hero-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; padding: 5px 10px; border: 1px solid var(--color-border); border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+    .site-hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary); flex-shrink: 0; }
+
+    /* ── AI Provider selector ─────────────────────────────────── */
+    .ai-provider-field { display: grid; gap: 7px; }
+    .ai-provider-field label { color: var(--color-text); font-size: 13px; font-weight: 600; }
+    .provider-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .provider-tab { border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface-2); color: var(--color-text-muted); padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 140ms ease; display: flex; align-items: center; gap: 6px; }
+    .provider-tab:hover { border-color: var(--color-primary); color: var(--color-text); background: transparent; }
+    .provider-tab.is-active { border-color: var(--color-primary); background: var(--color-primary); color: #fff; }
+    .provider-hint { font-size: 11px; color: var(--color-text-muted); line-height: 1.5; }
+    .provider-hint a { color: var(--color-primary); }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .site-footer { margin-top: 48px; border-top: 1px solid var(--color-border); background: var(--color-surface); }
+    .site-footer-inner { width: min(1440px, 100%); margin: 0 auto; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .site-footer p { color: var(--color-text-muted); font-size: 12px; margin: 0; }
+    .site-footer-links { display: flex; align-items: center; gap: 16px; }
+    .site-footer-links a { color: var(--color-text-muted); font-size: 12px; font-weight: 500; text-decoration: none; transition: color 140ms; }
+    .site-footer-links a:hover { color: var(--color-primary); text-decoration: none; }
+      padding: 0;
+      overflow: hidden;
+    
+
+    .profile-card {
+      padding: 24px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .profile-header {
+      margin-bottom: 22px;
+    }
+
+    .profile-header h2 {
+      color: var(--color-primary);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .profile-field {
+      display: grid;
+      gap: 7px;
+      min-width: 0;
+    }
+
+    .profile-field.is-wide {
+      grid-column: 1 / -1;
+    }
+
+    .profile-field label,
+    .completed-label {
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .profile-input,
+    .profile-select,
+    .profile-textarea {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--color-text);
+      outline: none;
+    }
+
+    .profile-input,
+    .profile-select {
+      height: 42px;
+      padding: 0 12px;
+    }
+
+    .profile-textarea {
+      min-height: 70px;
+      resize: vertical;
+      padding: 10px 12px;
+      line-height: 1.45;
+    }
+
+    .profile-input:focus,
+    .profile-select:focus,
+    .profile-textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(130, 16, 25, 0.12);
+    }
+
+    .completed-course-box {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: #fbfaf8;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .completed-list {
+      max-height: 220px;
+      overflow: auto;
+      display: grid;
+      gap: 7px;
+      padding-right: 4px;
+    }
+
+    .completed-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: 7px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .completed-option:hover {
+      border-color: var(--color-border);
+    }
+
+    .completed-option input {
+      margin-top: 3px;
+      accent-color: var(--color-primary);
+    }
+
+    .completed-course-text {
+      min-width: 0;
+      color: var(--color-text);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .completed-course-text strong {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+
+    .profile-error {
+      display: none;
+      color: #b42318;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .profile-error.is-visible {
+      display: block;
+    }
+
+    .profile-actions {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: flex-end;
+      padding-top: 4px;
+    }
+
+    .generate-plan-button {
+      border: 0;
+      border-radius: 6px;
+      background: var(--color-primary);
+      color: #fff;
+      padding: 11px 18px;
+      font-weight: 600;
+      box-shadow: 0 8px 18px rgba(130, 16, 25, 0.18);
+    }
+
+    .generate-plan-button:hover {
+      background: #6e0d15;
+    }
+
+    .ai-section {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .ai-panel {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .ai-header {
+      display: grid;
+      gap: 6px;
+    }
+
+    .ai-header h2 {
+      color: var(--color-primary);
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .ai-key-field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .ai-key-field label {
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .ai-input {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--color-text);
+      outline: none;
+      padding: 0 12px;
+    }
+
+    .ai-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(130, 16, 25, 0.12);
+    }
+
+    .ai-helper {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .ai-error {
+      display: none;
+      color: #b42318;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .ai-error.is-visible {
+      display: block;
+    }
+
+    .ai-loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      color: var(--color-text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .ai-loading.is-visible {
+      display: flex;
+    }
+
+    .ai-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #eadfe0;
+      border-top-color: var(--color-primary);
+      border-radius: 50%;
+      animation: spin 800ms linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .ai-results {
+      display: grid;
+      gap: 18px;
+    }
+
+    .ai-summary {
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-primary);
+      border-radius: 8px;
+      background: #fbfaf8;
+      padding: 13px 14px;
+      color: var(--color-text);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .recommendation-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .recommendation-column {
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .recommendation-column h3 {
+      color: var(--color-text);
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .recommendation-card {
+      display: grid;
+      gap: 7px;
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-primary);
+      border-radius: 8px;
+      background: #fff;
+      padding: 11px;
+    }
+
+    .recommendation-reason {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.45;
+    }
+
+    .ai-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .add-recommendations-button {
+      border: 0;
+      border-radius: 6px;
+      background: var(--color-primary);
+      color: #fff;
+      padding: 10px 16px;
+      font-weight: 600;
+      box-shadow: 0 8px 18px rgba(130, 16, 25, 0.18);
+    }
+
+    .add-recommendations-button:hover {
+      background: #6e0d15;
+    }
+
+    .course-chat-section {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .course-chat-panel {
+      border: 0;
+      background: #fff;
+    }
+
+    .course-chat-toggle {
+      width: 100%;
+      border: 0;
+      background: #fbfaf8;
+      color: var(--color-primary);
+      padding: 14px 18px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .course-chat-body {
+      display: none;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .course-chat-section.is-open .course-chat-body {
+      display: grid;
+    }
+
+    .course-chat-thread {
+      max-height: 400px;
+      overflow-y: auto;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: #fbfaf8;
+      padding: 12px;
+    }
+
+    .chat-message {
+      max-width: min(76%, 680px);
+      border-radius: 8px;
+      padding: 9px 11px;
+      font-size: 13px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+
+    .chat-message.user {
+      justify-self: end;
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .chat-message.assistant {
+      justify-self: start;
+      border: 1px solid var(--color-border);
+      background: #fff;
+      color: var(--color-text);
+    }
+
+    .course-chat-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .course-chat-input {
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--color-text);
+      outline: none;
+      padding: 0 12px;
+    }
+
+    .course-chat-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(130, 16, 25, 0.12);
+    }
+
+    .course-chat-submit {
+      border: 0;
+      border-radius: 6px;
+      background: var(--color-primary);
+      color: #fff;
+      padding: 0 14px;
+      font-weight: 600;
+    }
+
+    .course-chat-error {
+      display: none;
+      color: #b42318;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .course-chat-error.is-visible {
+      display: block;
+    }
+
+    .planner-section {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .planner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 18px;
+      border-bottom: 1px solid var(--color-border);
+      background: #fff;
+    }
+
+    .planner-header h2 {
+      color: var(--color-primary);
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .planner-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .planner-action-button {
+      border: 1px solid var(--color-primary);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--color-primary);
+      padding: 9px 12px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .planner-action-button.primary {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .planner-action-button:hover {
+      box-shadow: 0 0 0 3px rgba(130, 16, 25, 0.1);
+    }
+
+    .planner-toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) 220px;
+      gap: 12px;
+      padding: 18px;
+      border-bottom: 1px solid var(--color-border);
+      background: #fbfaf8;
+    }
+
+    .planner-input,
+    .planner-select {
+      width: 100%;
+      height: 42px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fff;
+      color: var(--color-text);
+      outline: none;
+    }
+
+    .planner-input {
+      padding: 0 13px;
+    }
+
+    .planner-select {
+      padding: 0 10px;
+    }
+
+    .planner-input:focus,
+    .planner-select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(130, 16, 25, 0.12);
+    }
+
+    .planner-shell {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      min-height: 720px;
+    }
+
+    .course-tray {
+      border-right: 1px solid var(--color-border);
+      background: #fdfcfb;
+      min-width: 0;
+    }
+
+    .tray-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .tray-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .course-count {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tray-list {
+      height: 646px;
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+    }
+
+    .year-grid {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .year-row {
+      display: grid;
+      grid-template-columns: 80px repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .year-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: #fbfaf8;
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .semester-slot {
+      min-height: 154px;
+      border: 1px dashed #c9c3bb;
+      border-radius: 8px;
+      background: #fff;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 140ms ease, background 140ms ease;
+    }
+
+    .semester-slot.is-drag-over {
+      border-color: var(--color-primary);
+      background: #fff8f8;
+    }
+
+    .semester-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 22px;
+    }
+
+    .semester-title {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .semester-count {
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .slot-warning {
+      display: none;
+      border: 1px solid #e4a3a3;
+      border-left: 3px solid #c52222;
+      border-radius: 6px;
+      background: #fff0f0;
+      color: #9f1d1d;
+      padding: 7px 9px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .slot-warning.is-visible {
+      display: block;
+    }
+
+    .slot-cards {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      min-height: 90px;
+    }
+
+    .course-card {
+      position: relative;
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-primary);
+      border-radius: 7px;
+      background: #fff;
+      padding: 9px 10px;
+      box-shadow: 0 2px 10px rgba(26, 26, 26, 0.04);
+      user-select: none;
+    }
+
+    .course-card[draggable="true"] {
+      cursor: grab;
+    }
+
+    .course-card[draggable="true"]:active {
+      cursor: grabbing;
+    }
+
+    .course-card.is-placed {
+      padding-right: 34px;
+    }
+
+    .course-card.is-used {
+      opacity: 0.42;
+      filter: grayscale(0.25);
+    }
+
+    .course-code {
+      color: var(--color-primary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .course-title {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tag-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      min-height: 20px;
+    }
+
+    .tag-pill {
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: #f1eee8;
+      color: #4e463d;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    .tag-pill[data-tag="QAR"] {
+      background: #e7f1ff;
+      color: #174f8a;
+    }
+
+    .tag-pill[data-tag="CCC"] {
+      background: #fff2d9;
+      color: #7a4c00;
+    }
+
+    .tag-pill[data-tag="HTE"] {
+      background: #e7f7ed;
+      color: #1d6840;
+    }
+
+    .tag-pill[data-tag="NSM"] {
+      background: #eee9ff;
+      color: #4d35a3;
+    }
+
+    .tag-pill[data-tag="SRIA"] {
+      background: #fbe6ea;
+      color: #8b263a;
+    }
+
+    .remove-course {
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--color-text-muted);
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .remove-course:hover {
+      border-color: #c52222;
+      color: #c52222;
+    }
+
+    .empty-slot,
+    .empty-tray {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .print-plan-header {
+      display: none;
+    }
+
+    .mobile-add-course {
+      display: none;
+    }
+
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 90px;
+      z-index: 40;
+      border-radius: 8px;
+      background: var(--color-primary);
+      color: #fff;
+      padding: 10px 13px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 160ms ease, transform 160ms ease;
+      box-shadow: 0 10px 24px rgba(26, 26, 26, 0.18);
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .requirement-bar {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 20;
+      border-top: 1px solid var(--color-border);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 -8px 28px rgba(26, 26, 26, 0.08);
+    }
+
+    .requirement-inner {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 12px 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .credits-counter {
+      flex: 0 0 auto;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: #fff;
+      color: var(--color-primary);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .requirement-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0;
+    }
+
+    .requirement-chip {
+      flex: 0 0 auto;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: #f2f0ec;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .requirement-chip.is-fulfilled {
+      border-color: #9ac7a6;
+      background: #e9f7ed;
+      color: #20633a;
+    }
+
+    html {
+      font-size: 14px;
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--color-surface-2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-primary);
+      border-radius: 3px;
+    }
+
+    a {
+      color: var(--color-primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    section,
+    .profile-card,
+    .ai-panel,
+    .course-chat-panel,
+    .planner-section,
+    .semester-slot,
+    .completed-course-box,
+    .course-chat-thread,
+    .ai-summary,
+    .recommendation-card {
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--color-surface);
+      box-shadow: none;
+    }
+
+    h2,
+    .profile-header h2,
+    .ai-header h2,
+    .planner-header h2 {
+      color: var(--color-text);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    button,
+    .generate-plan-button,
+    .add-recommendations-button,
+    .planner-action-button,
+    .planner-action-button.primary,
+    .course-chat-submit,
+    .mobile-add-course {
+      border: 0;
+      border-radius: 6px;
+      background: var(--color-primary);
+      color: #fff;
+      transition: background 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease;
+      box-shadow: none;
+    }
+
+    button:hover,
+    .generate-plan-button:hover,
+    .add-recommendations-button:hover,
+    .planner-action-button:hover,
+    .course-chat-submit:hover,
+    .mobile-add-course:hover {
+      background: var(--color-primary-hover);
+      box-shadow: none;
+    }
+
+    .remove-course {
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+    }
+
+    .remove-course:hover {
+      background: var(--color-danger);
+      border-color: var(--color-danger);
+      color: #fff;
+    }
+
+    .profile-input,
+    .profile-select,
+    .profile-textarea,
+    .planner-input,
+    .planner-select,
+    .ai-input,
+    .course-chat-input {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      color: var(--color-text);
+      box-shadow: none;
+    }
+
+    .profile-input::placeholder,
+    .profile-textarea::placeholder,
+    .planner-input::placeholder,
+    .ai-input::placeholder,
+    .course-chat-input::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .profile-input:focus,
+    .profile-select:focus,
+    .profile-textarea:focus,
+    .planner-input:focus,
+    .planner-select:focus,
+    .ai-input:focus,
+    .course-chat-input:focus {
+      border-color: var(--color-primary);
+      outline: 2px solid var(--color-primary);
+      outline-offset: 1px;
+      box-shadow: none;
+    }
+
+    .profile-section,
+    .ai-section,
+    .course-chat-section,
+    .planner-section {
+      background: var(--color-surface);
+      border-color: var(--color-border);
+    }
+
+    .profile-card,
+    .ai-panel,
+    .course-chat-body {
+      background: var(--color-surface);
+    }
+
+    .planner-header,
+    .planner-toolbar,
+    .tray-header,
+    .course-chat-toggle {
+      background: var(--color-surface);
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .planner-toolbar,
+    .completed-course-box,
+    .course-chat-thread {
+      background: var(--color-surface);
+    }
+
+    .course-tray {
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+    }
+
+    .completed-option,
+    .chat-message.assistant {
+      background: var(--color-surface-2);
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .completed-option:hover {
+      background: #292929;
+      border-color: var(--color-border);
+    }
+
+    .year-label {
+      background: transparent;
+      border-color: var(--color-border);
+      color: var(--color-primary);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .semester-slot {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+    }
+
+    .semester-slot.is-drag-over {
+      background: var(--color-surface-2);
+      border-color: var(--color-primary);
+    }
+
+    .semester-title,
+    .tray-header h3,
+    .recommendation-column h3 {
+      color: var(--color-text);
+    }
+
+    .course-card,
+    .recommendation-card {
+      background: var(--color-surface-2);
+      border: 1px solid var(--color-border);
+      border-left: 3px solid var(--color-primary);
+      border-radius: 10px;
+      color: var(--color-text);
+      box-shadow: none;
+    }
+
+    .course-code,
+    .completed-course-text strong {
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .course-title,
+    .recommendation-reason,
+    .completed-course-text,
+    .empty-slot,
+    .empty-tray,
+    .course-count,
+    .semester-count,
+    .ai-helper,
+    .placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .tag-pill,
+    .tag-pill[data-tag="QAR"],
+    .tag-pill[data-tag="CCC"],
+    .tag-pill[data-tag="HTE"],
+    .tag-pill[data-tag="NSM"],
+    .tag-pill[data-tag="SRIA"] {
+      border-radius: 20px;
+      background: #2a1a1b;
+      color: var(--color-primary);
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .slot-warning {
+      background: rgba(184, 115, 51, 0.13);
+      border-color: rgba(184, 115, 51, 0.5);
+      border-left-color: var(--color-warning);
+      color: #e2b07f;
+    }
+
+    .profile-error,
+    .ai-error,
+    .course-chat-error {
+      color: var(--color-danger);
+    }
+
+    .ai-spinner {
+      border-color: var(--color-surface-2);
+      border-top-color: var(--color-primary);
+    }
+
+    .ai-summary {
+      background: var(--color-surface-2);
+      border-left-color: var(--color-primary);
+      color: var(--color-text);
+    }
+
+    .chat-message.user {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    .chat-message.assistant {
+      background: var(--color-surface-2);
+    }
+
+    .course-chat-toggle {
+      background: var(--color-primary);
+      color: #fff;
+      border-bottom: 0;
+    }
+
+    .course-chat-toggle:hover {
+      background: var(--color-primary-hover);
+    }
+
+    .requirement-bar {
+      background: var(--color-surface);
+      border-top: 1px solid var(--color-border);
+      box-shadow: none;
+    }
+
+    .credits-counter {
+      background: var(--color-surface-2);
+      border-color: var(--color-border);
+      color: var(--color-text);
+    }
+
+    .requirement-chip {
+      background: var(--color-surface-2);
+      border-color: var(--color-border);
+      color: var(--color-text-muted);
+    }
+
+    .requirement-chip.is-fulfilled {
+      background: var(--color-success);
+      border-color: var(--color-success);
+      color: #fff;
+    }
+
+    .toast {
+      background: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    @media (max-width: 980px) {
+      main {
+        padding: 16px;
+      }
+
+      .profile-grid,
+      .recommendation-grid,
+      .planner-toolbar,
+      .planner-shell,
+      .year-row {
+        grid-template-columns: 1fr;
+      }
+
+      .profile-card,
+      .ai-panel {
+        padding: 18px;
+      }
+
+      .course-tray {
+        border-right: 0;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .tray-list {
+        max-height: 360px;
+        height: auto;
+      }
+
+      .year-label {
+        min-height: 38px;
+      }
+
+      .requirement-inner {
+        padding: 10px 16px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .requirement-chips {
+        width: 100%;
+      }
+
+      .course-chat-form {
+        grid-template-columns: 1fr;
+      }
+
+      .course-chat-submit {
+        height: 40px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      body {
+        padding-bottom: 120px;
+      }
+
+      .planner-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .planner-actions {
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      .planner-action-button {
+        flex: 1 1 140px;
+      }
+
+      .planner-shell {
+        display: block;
+        min-height: 0;
+      }
+
+      .course-tray {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 35;
+        max-height: 72vh;
+        border-top: 1px solid var(--color-border);
+        border-right: 0;
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+        box-shadow: 0 -14px 30px rgba(26, 26, 26, 0.18);
+        transform: translateY(calc(100% - 0px));
+        transition: transform 180ms ease;
+      }
+
+      body.is-course-drawer-open .course-tray {
+        transform: translateY(0);
+      }
+
+      .tray-list {
+        max-height: calc(72vh - 54px);
+      }
+
+      .year-grid {
+        padding: 12px;
+      }
+
+      .year-row {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .semester-slot {
+        min-height: 142px;
+      }
+
+      .ai-section,
+      .ai-panel,
+      .recommendation-grid {
+        width: 100%;
+      }
+
+      .mobile-add-course {
+        position: fixed;
+        right: 16px;
+        bottom: 76px;
+        z-index: 36;
+        display: block;
+        border: 0;
+        border-radius: 999px;
+        background: var(--color-primary);
+        color: #fff;
+        padding: 12px 16px;
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(130, 16, 25, 0.26);
+      }
+    }
+
+    @media print {
+      @page {
+        margin: 0.5in;
+      }
+
+      body {
+        padding: 0;
+        background: #fff;
+        color: #000;
+      }
+
+      button,
+      input,
+      select,
+      textarea,
+      .profile-section,
+      .planner-header,
+      .planner-toolbar,
+      .course-tray,
+      .ai-section,
+      .course-chat-section,
+      .requirement-bar,
+      .mobile-add-course,
+      .toast,
+      .slot-warning,
+      .remove-course,
+      .empty-slot {
+        display: none !important;
+      }
+
+      main {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+        display: block;
+      }
+
+      section,
+      .planner-section {
+        border: 0;
+        box-shadow: none;
+        padding: 0;
+      }
+
+      .print-plan-header {
+        display: block;
+        margin-bottom: 18px;
+        color: #000;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .planner-shell {
+        display: block;
+        min-height: 0;
+      }
+
+      .year-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        padding: 0;
+      }
+
+      .year-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        break-inside: avoid;
+      }
+
+      .year-label {
+        min-height: 0;
+        border: 1px solid #999;
+        background: #f4f4f4;
+        color: #000;
+        padding: 6px;
+      }
+
+      .semester-slot {
+        min-height: 0;
+        border: 1px solid #999;
+        border-radius: 0;
+        padding: 8px;
+        background: #fff;
+        break-inside: avoid;
+      }
+
+      .slot-cards {
+        min-height: 0;
+      }
+
+      .course-card {
+        border: 1px solid #aaa;
+        border-left: 3px solid #000;
+        box-shadow: none;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header-inner">
+      <a class="site-logo" href="#">
+        <div class="site-logo-mark">C</div>
+        <span class="site-logo-text">Colgate <span>Course Planner</span></span>
+      </a>
+      <nav class="site-nav">
+        <a href="https://www.linkedin.com/in/adviknatekar" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="mailto:anatekar@colgate.edu" class="nav-contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="site-hero">
+    <div class="site-hero-inner">
+      <h1>Plan your <em>four years</em> at Colgate.</h1>
+      <p>Map out your degree, track LACC requirements in real time, and get AI-powered course recommendations — all from a single drag-and-drop planner.</p>
+      <div class="site-hero-badge">2025–2026 · 1,778 courses · Colgate University</div>
+    </div>
+  </div>
+
+  <main>
+    <!-- SECTION: STUDENT PROFILE FORM -->
+    <section id="student-profile-form" class="profile-section">
+      <form id="profile-form" class="profile-card" novalidate>
+        <div class="profile-header">
+          <h2>Tell us about yourself</h2>
+        </div>
+
+        <div class="profile-grid">
+          <div class="profile-field">
+            <label for="student-name">Name</label>
+            <input id="student-name" class="profile-input" type="text" autocomplete="name">
+          </div>
+
+          <div class="profile-field">
+            <label for="class-year">Class year</label>
+            <select id="class-year" class="profile-select">
+              <option value="First Year">First Year</option>
+              <option value="Sophomore">Sophomore</option>
+              <option value="Junior">Junior</option>
+              <option value="Senior">Senior</option>
+            </select>
+          </div>
+
+          <div class="profile-field">
+            <label for="intended-major">Intended major</label>
+            <select id="intended-major" class="profile-select" required>
+              <option value="">Select a major</option>
+            </select>
+            <div id="major-error" class="profile-error">Please select an intended major.</div>
+          </div>
+
+          <div class="profile-field">
+            <label for="intended-minor">Intended minor</label>
+            <select id="intended-minor" class="profile-select">
+              <option value="">None</option>
+            </select>
+          </div>
+
+          <div class="profile-field is-wide">
+            <div class="completed-label">Completed courses</div>
+            <div class="completed-course-box">
+              <input id="completed-course-search" class="profile-input" type="search" placeholder="Search completed courses" autocomplete="off">
+              <div id="completed-course-list" class="completed-list"></div>
+            </div>
+          </div>
+
+          <div class="profile-field is-wide">
+            <label for="academic-interests">Academic interests</label>
+            <textarea id="academic-interests" class="profile-textarea" rows="2" placeholder="e.g. entrepreneurship, behavioral economics, data science"></textarea>
+          </div>
+
+          <div class="profile-actions">
+            <button class="generate-plan-button" type="submit">Generate My Plan</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- SECTION: 4-YEAR SEMESTER GRID -->
+    <section id="four-year-semester-grid" class="planner-section">
+      <div class="planner-header">
+        <h2>4-Year Semester Grid</h2>
+        <div class="planner-actions">
+          <button id="export-plan-button" class="planner-action-button primary" type="button">Export Plan as PDF</button>
+          <button id="share-plan-button" class="planner-action-button" type="button">Share Plan</button>
+        </div>
+      </div>
+      <div class="planner-toolbar">
+        <input id="course-search" class="planner-input" type="search" placeholder="Search courses by code or title" autocomplete="off">
+        <select id="course-filter" class="planner-select" aria-label="Filter courses">
+          <option value="ALL">All</option>
+        </select>
+      </div>
+
+      <div class="planner-shell">
+        <aside class="course-tray" aria-label="Course Tray">
+          <div class="tray-header">
+            <h3>Course Tray</h3>
+            <span id="course-count" class="course-count">0 courses</span>
+          </div>
+          <div id="course-tray-list" class="tray-list"></div>
+        </aside>
+
+        <div>
+          <div id="print-plan-header" class="print-plan-header">Colgate Course Plan</div>
+          <div id="semester-grid" class="year-grid" aria-label="4-Year Semester Grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: AI RECOMMENDATION PANEL -->
+    <section id="ai-recommendation-panel" class="ai-section">
+      <div class="ai-panel">
+        <div class="ai-header">
+          <h2>AI Recommendation Panel</h2>
+        </div>
+
+        <div class="ai-key-field">
+          <div class="ai-provider-field">
+            <label>AI Provider</label>
+            <div class="provider-tabs">
+              <button type="button" class="provider-tab is-active" data-provider="openai">OpenAI (ChatGPT)</button>
+              <button type="button" class="provider-tab" data-provider="gemini">Google Gemini</button>
+              <button type="button" class="provider-tab" data-provider="claude">Anthropic Claude</button>
+            </div>
+            <p class="provider-hint" id="provider-hint-openai">Get your key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>. Uses <code>gpt-4o-mini</code>.</p>
+            <p class="provider-hint" id="provider-hint-gemini" style="display:none">Get your key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>. Uses <code>gemini-1.5-flash</code>.</p>
+            <p class="provider-hint" id="provider-hint-claude" style="display:none">Get your key at <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com</a>. Uses <code>claude-haiku-3-5</code>.</p>
+          </div>
+          <label for="openai-api-key" id="api-key-label">Your OpenAI API Key</label>
+          <input id="openai-api-key" class="ai-input" type="password" placeholder="sk-proj-..." autocomplete="off">
+          <p class="ai-helper">Your key is never stored — it goes directly to the provider from your browser.</p>
+          <div id="api-key-error" class="ai-error">Please enter your API key to generate recommendations.</div>
+        </div>
+
+        <div id="ai-api-error" class="ai-error">Could not generate recommendations. Check your API key and try again.</div>
+        <div id="ai-loading" class="ai-loading">
+          <span class="ai-spinner" aria-hidden="true"></span>
+          <span>Thinking about your plan&hellip;</span>
+        </div>
+        <div id="ai-results" class="ai-results">
+          <p class="placeholder">Recommendations will appear here after you generate your plan.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: COURSE CHAT -->
+    <section id="course-chat-section" class="course-chat-section">
+      <div class="course-chat-panel">
+        <button id="course-chat-toggle" class="course-chat-toggle" type="button" aria-expanded="false">Ask a question ▾</button>
+        <div class="course-chat-body">
+          <div id="course-chat-thread" class="course-chat-thread" aria-live="polite">
+            <div class="chat-message assistant">Ask anything about Colgate courses.</div>
+          </div>
+          <form id="course-chat-form" class="course-chat-form">
+            <input id="course-chat-input" class="course-chat-input" type="text" placeholder="Ask anything about Colgate courses…" autocomplete="off">
+            <button class="course-chat-submit" type="submit">Ask</button>
+          </form>
+          <div id="course-chat-error" class="course-chat-error">Please enter your OpenAI API key in the panel above first.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer-inner">
+      <p>Built by Advik Natekar · Colgate University '29 · Course data: 2025–2026 catalog</p>
+      <div class="site-footer-links">
+        <a href="https://www.linkedin.com/in/adviknatekar" target="_blank" rel="noopener">LinkedIn ↗</a>
+        <a href="mailto:anatekar@colgate.edu">anatekar@colgate.edu</a>
+        <a href="https://catalog.colgate.edu" target="_blank" rel="noopener">Colgate Catalog ↗</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="requirement-bar" aria-label="Graduation Requirement Tracker">
+    <div class="requirement-inner">
+      <div id="credits-counter" class="credits-counter">Credits: 0/32</div>
+      <div id="requirement-chips" class="requirement-chips"></div>
+    </div>
+  </div>
+
+  <button id="mobile-add-course" class="mobile-add-course" type="button">+ Add Course</button>
+  <div id="share-toast" class="toast" role="status" aria-live="polite">Link copied to clipboard!</div>
+
+  <script>
+    const STORAGE_KEY = 'colgate_plan_v1';
+    const SEMESTERS = [
+      { key: 'y1-fall', year: 1, semester: 1, label: 'Fall' },
+      { key: 'y1-spring', year: 1, semester: 2, label: 'Spring' },
+      { key: 'y2-fall', year: 2, semester: 1, label: 'Fall' },
+      { key: 'y2-spring', year: 2, semester: 2, label: 'Spring' },
+      { key: 'y3-fall', year: 3, semester: 1, label: 'Fall' },
+      { key: 'y3-spring', year: 3, semester: 2, label: 'Spring' },
+      { key: 'y4-fall', year: 4, semester: 1, label: 'Fall' },
+      { key: 'y4-spring', year: 4, semester: 2, label: 'Spring' }
+    ];
+    const REQUIREMENT_KEYS = [
+      'fsem',
+      'core_communities',
+      'core_conversations',
+      'core_sciences',
+      'lap_ccc',
+      'lap_pow',
+      'lap_qar',
+      'lap_ls',
+      'lap_api',
+      'aoi_hte',
+      'aoi_sria',
+      'aoi_nsm',
+      'major_required'
+    ];
+    const FILTER_TAGS = ['QAR', 'CCC', 'HTE', 'NSM'];
+
+    let plannerCourses = [];
+    let plannerState = [];
+    let currentSearch = '';
+    let currentFilter = 'ALL';
+    let completedCourseSearch = '';
+    let completedCourseSelections = new Set();
+    let userApiKey = '';
+    let aiProvider = 'openai'; // 'openai' | 'gemini' | 'claude'
+    let aiPanelInitialized = false;
+    let latestRecommendations = null;
+    let courseChatInitialized = false;
+    let courseChatHistory = [];
+    let sharedPlanFromHash = null;
+
+    function normalizeText(value) {
+      return String(value || '').trim();
+    }
+
+    function normalizeTag(value) {
+      return normalizeText(value).toUpperCase().replace(/^LAP[_\s-]?/, '').replace(/^AOI[_\s-]?/, '');
+    }
+
+    function courseCode(course) {
+      return normalizeText(course.courseId || course.id || course.code || course.course || course.catalogId);
+    }
+
+    function courseTitle(course) {
+      return normalizeText(course.title || course.name || course.course_title || course.label || courseCode(course));
+    }
+
+    function courseCredits(course) {
+      const value = Number(course.credits || course.credit || course.units || course.hours || 1);
+      return Number.isFinite(value) && value > 0 ? value : 1;
+    }
+
+    function collectCourseTags(course) {
+      const tags = [];
+      const fields = [
+        course.tags,
+        course.tag,
+        course.requirements,
+        course.requirement,
+        course.categories,
+        course.category,
+        course.attributes,
+        course.attribute,
+        course.lap,
+        course.aoi,
+        course.core
+      ];
+
+      fields.forEach((value) => {
+        if (!value) return;
+        const values = Array.isArray(value) ? value : [value];
+        values.forEach((item) => {
+          if (item && typeof item === 'object') {
+            tags.push(item.code || item.id || item.name || item.key || item.type);
+          } else {
+            tags.push(item);
+          }
+        });
+      });
+
+      return [...new Set(tags.map(normalizeTag).filter(Boolean))];
+    }
+
+    function normalizeCourses(rawCourses) {
+      if (Array.isArray(rawCourses)) {
+        return rawCourses.map((course) => ({ ...course })).filter((course) => courseCode(course));
+      }
+
+      if (rawCourses && typeof rawCourses === 'object') {
+        return Object.entries(rawCourses)
+          .map(([id, course]) => {
+            if (course && typeof course === 'object') return { id, ...course };
+            return { id, title: String(course || id) };
+          })
+          .filter((course) => courseCode(course));
+      }
+
+      return [];
+    }
+
+    function normalizeOptionList(rawItems) {
+      if (Array.isArray(rawItems)) {
+        return rawItems
+          .map((item) => {
+            if (item && typeof item === 'object') {
+              const id = normalizeText(item.id || item.code || item.value || item.key || item.name || item.label);
+              const label = normalizeText(item.label || item.name || item.title || item.id || item.code || item.value || item.key);
+              return { id, label };
+            }
+            return { id: normalizeText(item), label: normalizeText(item) };
+          })
+          .filter((item) => item.id && item.label);
+      }
+
+      if (rawItems && typeof rawItems === 'object') {
+        return Object.entries(rawItems)
+          .map(([id, item]) => {
+            if (item && typeof item === 'object') {
+              return {
+                id: normalizeText(item.id || item.code || item.value || id),
+                label: normalizeText(item.label || item.name || item.title || id)
+              };
+            }
+            return { id: normalizeText(id), label: normalizeText(item || id) };
+          })
+          .filter((item) => item.id && item.label);
+      }
+
+      return [];
+    }
+
+    function findMajorRecord(majorId) {
+      const majors = window.UNI && window.UNI.majors;
+      const target = normalizeText(majorId).toUpperCase();
+      if (!target) return null;
+
+      if (Array.isArray(majors)) {
+        return majors.find((major) => {
+          const id = normalizeText(major && (major.id || major.code || major.value || major.key || major.name || major.label));
+          return id.toUpperCase() === target;
+        }) || null;
+      }
+
+      if (majors && typeof majors === 'object') {
+        for (const [id, major] of Object.entries(majors)) {
+          const recordId = normalizeText(major && typeof major === 'object'
+            ? major.id || major.code || major.value || major.key || id
+            : id);
+          if (recordId.toUpperCase() === target || normalizeText(id).toUpperCase() === target) {
+            return major && typeof major === 'object' ? major : { id, label: String(major || id) };
+          }
+        }
+      }
+
+      return null;
+    }
+
+    function getCompletedCourseDetails(courseIds) {
+      return (courseIds || []).map((courseId) => {
+        const course = getCourse(courseId);
+        return {
+          courseId,
+          title: course ? courseTitle(course) : courseId,
+          tags: course ? collectCourseTags(course) : []
+        };
+      });
+    }
+
+    function buildAISystemPrompt(studentProfile) {
+      const majorRecord = findMajorRecord(studentProfile && studentProfile.intendedMajor && studentProfile.intendedMajor.id);
+      const majorRequirements = {
+        required_courses: majorRecord && majorRecord.required_courses ? majorRecord.required_courses : majorRecord && majorRecord.requiredCourses ? majorRecord.requiredCourses : [],
+        electives: majorRecord && majorRecord.electives ? majorRecord.electives : []
+      };
+
+      return [
+        'You are an expert academic advisor for Colgate University. Recommend only courses that appear in the provided course catalog when possible.',
+        `Graduation requirements: ${JSON.stringify((window.UNI && window.UNI.graduation_requirements) || {})}`,
+        `Selected major requirements and electives: ${JSON.stringify(majorRequirements)}`,
+        `Completed courses with tags: ${JSON.stringify(getCompletedCourseDetails(studentProfile.completedCourses))}`,
+        `Student class year: ${studentProfile.classYear || ''}`,
+        `Student interests: ${studentProfile.academicInterests || ''}`,
+        `Course catalog: ${JSON.stringify(plannerCourses.map((course) => ({
+          courseId: courseCode(course),
+          title: courseTitle(course),
+          tags: collectCourseTags(course)
+        })))}`
+      ].join('\n\n');
+    }
+
+    function aiUserMessage() {
+      return `Based on this student profile and Colgate's graduation requirements,
+suggest an optimal course plan for the next 2 semesters. For each
+suggested course, explain in one sentence why it is recommended.
+Return only a JSON object with this structure:
+{
+  "semester1": [ {"courseId": "string", "reason": "string"} ],
+  "semester2": [ {"courseId": "string", "reason": "string"} ],
+  "summary": "string (2-3 sentence overall strategy)"
+}`;
+    }
+
+    function extractResponseText(data) {
+      if (data && typeof data.output_text === 'string') return data.output_text;
+      if (data && data.choices && data.choices[0] && data.choices[0].message) {
+        return data.choices[0].message.content || '';
+      }
+      if (data && Array.isArray(data.output)) {
+        return data.output
+          .flatMap((item) => Array.isArray(item.content) ? item.content : [])
+          .map((part) => part.text || '')
+          .join('\n');
+      }
+      return '';
+    }
+
+    function parseRecommendationJSON(text) {
+      const cleaned = normalizeText(text).replace(/^```(?:json)?/i, '').replace(/```$/i, '').trim();
+      try {
+        return JSON.parse(cleaned);
+      } catch (error) {
+        const start = cleaned.indexOf('{');
+        const end = cleaned.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+          return JSON.parse(cleaned.slice(start, end + 1));
+        }
+        throw error;
+      }
+    }
+
+    // ── Multi-provider AI call ────────────────────────────────────
+    async function callAI(messages, jsonMode = false) {
+      if (aiProvider === 'gemini') {
+        const contents = messages.filter(m => m.role !== 'system').map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+        const systemMsg = messages.find(m => m.role === 'system');
+        const body = {
+          contents,
+          systemInstruction: systemMsg ? { parts: [{ text: systemMsg.content }] } : undefined,
+          generationConfig: jsonMode ? { responseMimeType: 'application/json' } : {}
+        };
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userApiKey}`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+        );
+        if (!res.ok) throw new Error('Gemini API request failed');
+        const d = await res.json();
+        return d?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      }
+      if (aiProvider === 'claude') {
+        const systemMsg = messages.find(m => m.role === 'system');
+        const res = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': userApiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5',
+            max_tokens: 1500,
+            system: systemMsg?.content || '',
+            messages: messages.filter(m => m.role !== 'system')
+          })
+        });
+        if (!res.ok) throw new Error('Claude API request failed');
+        const d = await res.json();
+        return d?.content?.[0]?.text || '';
+      }
+      // Default: OpenAI
+      const res = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userApiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          response_format: jsonMode ? { type: 'json_object' } : undefined,
+          messages
+        })
+      });
+      if (!res.ok) throw new Error('OpenAI API request failed');
+      const d = await res.json();
+      return d?.choices?.[0]?.message?.content || '';
+    }
+
+    async function requestAIRecommendations(studentProfile) {
+      const text = await callAI([
+        { role: 'system', content: buildAISystemPrompt(studentProfile) },
+        { role: 'user', content: aiUserMessage() }
+      ], true);
+      return parseRecommendationJSON(text);
+    }
+
+    function courseChatSystemPrompt() {
+      return `You are a Colgate University academic advisor. Answer questions ONLY using the course data provided below. If the answer is not in the data, say so. Do not invent courses, requirements, or policies. Here is the full course catalog: ${JSON.stringify(window.UNI || {})}`;
+    }
+
+    async function requestCourseChatAnswer(message) {
+      const context = courseChatHistory.slice(-12).map(item => ({ role: item.role, content: item.content }));
+      return await callAI([
+        { role: 'system', content: courseChatSystemPrompt() },
+        ...context,
+        { role: 'user', content: message }
+      ]);
+    }    
+
+    function getCourse(courseId) {
+      const target = normalizeText(courseId).toUpperCase();
+      return plannerCourses.find((course) => courseCode(course).toUpperCase() === target);
+    }
+
+    function sanitizePlanEntries(entries) {
+      const seenCourses = new Set();
+      const slotCounts = new Map();
+
+      return (Array.isArray(entries) ? entries : [])
+        .filter((entry) => entry && entry.courseId && entry.year && entry.semester)
+        .map((entry) => ({
+          courseId: normalizeText(entry.courseId),
+          year: Number(entry.year),
+          semester: Number(entry.semester)
+        }))
+        .filter((entry) => {
+          const course = getCourse(entry.courseId);
+          const year = Number(entry.year);
+          const semester = Number(entry.semester);
+          if (!course || !Number.isInteger(year) || year < 1 || year > 4 || ![1, 2].includes(semester)) return false;
+
+          const courseKey = courseCode(course).toUpperCase();
+          const slotKey = `${year}-${semester}`;
+          const slotCount = slotCounts.get(slotKey) || 0;
+          if (seenCourses.has(courseKey) || slotCount >= 6) return false;
+
+          seenCourses.add(courseKey);
+          slotCounts.set(slotKey, slotCount + 1);
+          return true;
+        });
+    }
+
+    function placedCourses() {
+      return plannerState.map((entry) => ({
+        courseId: entry.courseId,
+        year: entry.year,
+        semester: entry.semester
+      }));
+    }
+
+    function semesterKey(year, semester) {
+      return `y${year}-${Number(semester) === 2 ? 'spring' : 'fall'}`;
+    }
+
+    function loadPlan() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return sanitizePlanEntries(saved);
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function savePlan() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(plannerState));
+    }
+
+    function encodeSharePayload(payload) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    }
+
+    function decodeSharePayload(encoded) {
+      return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+    }
+
+    function readSharedPlanFromHash() {
+      const encoded = window.location.hash.replace(/^#/, '');
+      if (!encoded) return null;
+
+      try {
+        const decoded = decodeSharePayload(encoded);
+        if (!decoded || typeof decoded !== 'object') return null;
+        return decoded;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function sharePayload() {
+      return {
+        studentProfile: window.studentProfile || null,
+        placedCourses: placedCourses()
+      };
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('share-toast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add('is-visible');
+      window.setTimeout(() => toast.classList.remove('is-visible'), 2200);
+    }
+
+    async function copyTextToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      textarea.remove();
+    }
+
+    async function sharePlan() {
+      const encoded = encodeSharePayload(sharePayload());
+      window.location.hash = encoded;
+      await copyTextToClipboard(window.location.href);
+      showToast('Link copied to clipboard!');
+    }
+
+    function getPlacedSet() {
+      return new Set(plannerState.map((entry) => entry.courseId.toUpperCase()));
+    }
+
+    function buildTooltip(course) {
+      const tags = collectCourseTags(course);
+      return `${courseCode(course)} - ${courseTitle(course)}${tags.length ? '\nTags: ' + tags.join(', ') : ''}`;
+    }
+
+    function createTagList(tags, limit = 3) {
+      const list = document.createElement('div');
+      list.className = 'tag-list';
+      tags.slice(0, limit).forEach((tag) => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill';
+        pill.dataset.tag = tag;
+        pill.textContent = tag;
+        list.appendChild(pill);
+      });
+      return list;
+    }
+
+    function createCourseCard(course, options = {}) {
+      const code = courseCode(course);
+      const tags = collectCourseTags(course);
+      const card = document.createElement('article');
+      card.className = `course-card${options.placed ? ' is-placed' : ''}${options.used ? ' is-used' : ''}`;
+      card.draggable = !options.used || options.placed;
+      card.dataset.courseId = code;
+      card.title = buildTooltip(course);
+
+      const codeEl = document.createElement('div');
+      codeEl.className = 'course-code';
+      codeEl.textContent = code;
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'course-title';
+      titleEl.textContent = courseTitle(course);
+
+      card.append(codeEl, titleEl, createTagList(tags));
+
+      if (options.placed) {
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-course';
+        removeButton.type = 'button';
+        removeButton.setAttribute('aria-label', `Remove ${code}`);
+        removeButton.textContent = '\u2715';
+        removeButton.addEventListener('click', () => removeCourse(code));
+        card.appendChild(removeButton);
+      }
+
+      if (card.draggable) {
+        card.addEventListener('dragstart', (event) => {
+          event.dataTransfer.setData('text/plain', code);
+          event.dataTransfer.effectAllowed = 'move';
+        });
+      }
+
+      return card;
+    }
+
+    function populateFilterOptions() {
+      const filter = document.getElementById('course-filter');
+      if (!filter) return;
+
+      const presentTags = new Set();
+      plannerCourses.forEach((course) => {
+        collectCourseTags(course).forEach((tag) => presentTags.add(tag));
+      });
+
+      filter.innerHTML = '<option value="ALL">All</option>';
+      FILTER_TAGS.forEach((tag) => {
+        if (!presentTags.has(tag)) return;
+        const option = document.createElement('option');
+        option.value = tag;
+        option.textContent = `Fulfills ${tag}`;
+        filter.appendChild(option);
+      });
+    }
+
+    function renderCourseTray() {
+      const tray = document.getElementById('course-tray-list');
+      const count = document.getElementById('course-count');
+      if (!tray) return;
+
+      const placedSet = getPlacedSet();
+      const query = currentSearch.toLowerCase();
+      const filtered = plannerCourses.filter((course) => {
+        const haystack = `${courseCode(course)} ${courseTitle(course)}`.toLowerCase();
+        const matchesSearch = !query || haystack.includes(query);
+        const matchesFilter = currentFilter === 'ALL' || collectCourseTags(course).includes(currentFilter);
+        return matchesSearch && matchesFilter;
+      });
+
+      tray.innerHTML = '';
+      filtered.forEach((course) => {
+        const used = placedSet.has(courseCode(course).toUpperCase());
+        tray.appendChild(createCourseCard(course, { used }));
+      });
+
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-tray';
+        empty.textContent = 'No courses match this filter.';
+        tray.appendChild(empty);
+      }
+
+      if (count) count.textContent = `${filtered.length} course${filtered.length === 1 ? '' : 's'}`;
+    }
+
+    function renderSemesterGrid() {
+      const grid = document.getElementById('semester-grid');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      for (let year = 1; year <= 4; year += 1) {
+        const row = document.createElement('div');
+        row.className = 'year-row';
+
+        const yearLabel = document.createElement('div');
+        yearLabel.className = 'year-label';
+        yearLabel.textContent = `Year ${year}`;
+        row.appendChild(yearLabel);
+
+        SEMESTERS.filter((semester) => semester.year === year).forEach((semester) => {
+          row.appendChild(createSemesterSlot(semester));
+        });
+
+        grid.appendChild(row);
+      }
+    }
+
+    function createSemesterSlot(semester) {
+      const slot = document.createElement('div');
+      slot.className = 'semester-slot';
+      slot.dataset.year = semester.year;
+      slot.dataset.semester = semester.semester;
+
+      const coursesInSlot = plannerState.filter(
+        (entry) => entry.year === semester.year && entry.semester === semester.semester
+      );
+
+      const head = document.createElement('div');
+      head.className = 'semester-head';
+
+      const title = document.createElement('div');
+      title.className = 'semester-title';
+      title.textContent = semester.label;
+
+      const count = document.createElement('div');
+      count.className = 'semester-count';
+      count.textContent = `${coursesInSlot.length}/6`;
+
+      const warning = document.createElement('div');
+      warning.className = 'slot-warning';
+      const warningText = getSlotWarning(coursesInSlot, semester);
+      if (warningText) {
+        warning.classList.add('is-visible');
+        warning.textContent = warningText;
+      }
+
+      const cards = document.createElement('div');
+      cards.className = 'slot-cards';
+
+      coursesInSlot.forEach((entry) => {
+        const course = getCourse(entry.courseId);
+        if (course) cards.appendChild(createCourseCard(course, { placed: true }));
+      });
+
+      if (!coursesInSlot.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-slot';
+        empty.textContent = 'Drop up to 6 courses here.';
+        cards.appendChild(empty);
+      }
+
+      slot.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        slot.classList.add('is-drag-over');
+      });
+      slot.addEventListener('dragleave', () => slot.classList.remove('is-drag-over'));
+      slot.addEventListener('drop', (event) => {
+        event.preventDefault();
+        slot.classList.remove('is-drag-over');
+        placeCourse(event.dataTransfer.getData('text/plain'), semester.year, semester.semester);
+      });
+
+      head.append(title, count);
+      slot.append(head, warning, cards);
+      return slot;
+    }
+
+    function isCoreCourse(course) {
+      if (!course) return false;
+      const tags = collectCourseTags(course);
+      return tags.some((tag) => tag === 'CORE' || tag.startsWith('CORE_') || tag.startsWith('CORE '));
+    }
+
+    function getPrereqNames(missingIds) {
+      return missingIds.map((id) => {
+        const course = getCourse(id);
+        return course ? `${courseCode(course)} ${courseTitle(course)}` : id;
+      });
+    }
+
+    function getSlotWarning(coursesInSlot, semester) {
+      if (!window.Validator) return '';
+
+      for (const entry of coursesInSlot) {
+        const course = getCourse(entry.courseId);
+        if (!course) continue;
+
+        if (window.Validator.checkPrereqs) {
+          const result = window.Validator.checkPrereqs(entry.courseId, placedCourses());
+          if (result && result.valid === false && result.missing && result.missing.length) {
+            return `Warning: ${courseTitle(course)} requires ${getPrereqNames(result.missing).join(', ')} first`;
+          }
+        }
+
+        if (semester.year > 2 && isCoreCourse(course)) {
+          return `Warning: ${courseTitle(course)} should be completed by the end of Year 2`;
+        }
+      }
+
+      return '';
+    }
+
+    function placeCourse(courseId, year, semester) {
+      const code = normalizeText(courseId);
+      const course = getCourse(code);
+      if (!code || !course) return;
+      const courseKey = courseCode(course).toUpperCase();
+
+      const slotCount = plannerState.filter((entry) => entry.year === year && entry.semester === semester).length;
+      const alreadyPlaced = plannerState.find((entry) => entry.courseId.toUpperCase() === courseKey);
+      if (alreadyPlaced && alreadyPlaced.year === year && alreadyPlaced.semester === semester) return;
+      if ((!alreadyPlaced || alreadyPlaced.year !== year || alreadyPlaced.semester !== semester) && slotCount >= 6) return;
+
+      if (alreadyPlaced) {
+        alreadyPlaced.year = year;
+        alreadyPlaced.semester = semester;
+      } else {
+        plannerState.push({ courseId: courseCode(course), year, semester });
+      }
+
+      if (window.Validator && window.Validator.checkPrereqs) {
+        window.Validator.checkPrereqs(code, placedCourses());
+      }
+
+      savePlan();
+      renderPlanner();
+    }
+
+    function removeCourse(courseId) {
+      const target = normalizeText(courseId).toUpperCase();
+      plannerState = plannerState.filter((entry) => entry.courseId.toUpperCase() !== target);
+      savePlan();
+      renderPlanner();
+    }
+
+    function fallbackRequirementStatus() {
+      const used = plannerState.reduce((sum, entry) => sum + courseCredits(getCourse(entry.courseId) || {}), 0);
+      const status = {};
+      REQUIREMENT_KEYS.forEach((key) => {
+        status[key] = { fulfilled: false, courses: [] };
+      });
+
+      const tagRequirements = {
+        fsem: ['FSEM'],
+        core_communities: ['CORE_COMMUNITIES', 'COMMUNITIES'],
+        core_conversations: ['CORE_CONVERSATIONS', 'CONVERSATIONS'],
+        core_sciences: ['CORE_SCIENCES', 'SCIENCES'],
+        lap_ccc: ['CCC'],
+        lap_pow: ['POW'],
+        lap_qar: ['QAR'],
+        lap_ls: ['LS'],
+        lap_api: ['API'],
+        aoi_hte: ['HTE'],
+        aoi_sria: ['SRIA'],
+        aoi_nsm: ['NSM']
+      };
+
+      const lapKeys = ['lap_ccc', 'lap_pow', 'lap_qar', 'lap_ls', 'lap_api'];
+      const aoiKeys = ['aoi_hte', 'aoi_sria', 'aoi_nsm'];
+      const lapAssigned = new Map();
+
+      plannerState.forEach((entry) => {
+        const course = getCourse(entry.courseId);
+        if (!course) return;
+        const tags = collectCourseTags(course);
+
+        ['fsem', 'core_communities', 'core_conversations', 'core_sciences'].forEach((key) => {
+          if (tagRequirements[key].some((tag) => tags.includes(tag))) {
+            status[key].courses.push(entry.courseId);
+          }
+        });
+
+        const lapKey = lapKeys.find((key) => tagRequirements[key].some((tag) => tags.includes(tag)));
+        if (lapKey) {
+          lapAssigned.set(entry.courseId.toUpperCase(), lapKey);
+          status[lapKey].courses.push(entry.courseId);
+        }
+
+        const aoiKey = aoiKeys.find((key) => tagRequirements[key].some((tag) => tags.includes(tag)));
+        if (aoiKey && lapAssigned.get(entry.courseId.toUpperCase()) !== 'lap_pow') {
+          status[aoiKey].courses.push(entry.courseId);
+        }
+      });
+
+      Object.keys(tagRequirements).forEach((key) => {
+        status[key].courses = [...new Set(status[key].courses)];
+        status[key].fulfilled = status[key].courses.length > 0;
+      });
+
+      const majorRecord = findMajorRecord(window.selectedMajor || window.SELECTED_MAJOR || '');
+      const requiredCourses = majorRecord
+        ? [
+            ...(Array.isArray(majorRecord.required_courses) ? majorRecord.required_courses : []),
+            ...(Array.isArray(majorRecord.requiredCourses) ? majorRecord.requiredCourses : [])
+          ].map((courseId) => normalizeText(courseId).toUpperCase())
+        : [];
+      const placedSet = getPlacedSet();
+      status.major_required = {
+        fulfilled: requiredCourses.length > 0 && requiredCourses.every((courseId) => placedSet.has(courseId)),
+        courses: requiredCourses.filter((courseId) => placedSet.has(courseId))
+      };
+
+      status.credits_used = { fulfilled: used >= 32, courses: plannerState.map((entry) => entry.courseId), used };
+      status.credits_remaining = { fulfilled: used >= 32, courses: [], remaining: Math.max(0, 32 - used) };
+      return status;
+    }
+
+    function renderRequirementTracker() {
+      const chips = document.getElementById('requirement-chips');
+      const credits = document.getElementById('credits-counter');
+      if (!chips || !credits) return;
+
+      const status = window.Validator && window.Validator.getRequirementStatus
+        ? window.Validator.getRequirementStatus(placedCourses(), window.selectedMajor || window.SELECTED_MAJOR || '')
+        : fallbackRequirementStatus();
+
+      const usedCredits = plannerState.reduce((sum, entry) => sum + courseCredits(getCourse(entry.courseId) || {}), 0);
+      const remainingInfo = status.credits_remaining || {};
+      const remainingValue = typeof remainingInfo.remaining === 'number' ? remainingInfo.remaining : null;
+      const totalCredits = remainingValue == null ? 32 : usedCredits + remainingValue;
+      credits.textContent = `Credits: ${usedCredits}/${totalCredits || 32}`;
+
+      chips.innerHTML = '';
+      REQUIREMENT_KEYS.forEach((key) => {
+        const chip = document.createElement('span');
+        chip.className = `requirement-chip${status[key] && status[key].fulfilled ? ' is-fulfilled' : ''}`;
+        chip.textContent = key.replace(/_/g, ' ');
+        chips.appendChild(chip);
+      });
+    }
+
+    function renderPlanner() {
+      renderCourseTray();
+      renderSemesterGrid();
+      renderRequirementTracker();
+      updatePrintHeader();
+    }
+
+    function profileMajorLabel(profile) {
+      if (profile && profile.intendedMajor && profile.intendedMajor.label) return profile.intendedMajor.label;
+      if (profile && profile.intendedMajor && profile.intendedMajor.id) return profile.intendedMajor.id;
+      return 'Major not selected';
+    }
+
+    function updatePrintHeader() {
+      const header = document.getElementById('print-plan-header');
+      if (!header) return;
+
+      const profile = window.studentProfile || {};
+      const name = normalizeText(profile.name) || 'Student';
+      const major = profileMajorLabel(profile);
+      header.textContent = `Colgate Course Plan — ${name} — ${major}`;
+    }
+
+    function setAILoading(isLoading) {
+      document.getElementById('ai-loading')?.classList.toggle('is-visible', isLoading);
+    }
+
+    function setAIError(elementId, isVisible) {
+      document.getElementById(elementId)?.classList.toggle('is-visible', isVisible);
+    }
+
+    function setCourseChatError(isVisible) {
+      document.getElementById('course-chat-error')?.classList.toggle('is-visible', isVisible);
+    }
+
+    function appendCourseChatMessage(role, content) {
+      const thread = document.getElementById('course-chat-thread');
+      if (!thread) return;
+
+      const message = document.createElement('div');
+      message.className = `chat-message ${role}`;
+      message.textContent = content;
+      thread.appendChild(message);
+      thread.scrollTop = thread.scrollHeight;
+    }
+
+    function rememberCourseChatMessage(role, content) {
+      courseChatHistory.push({ role, content });
+      if (courseChatHistory.length > 12) {
+        courseChatHistory = courseChatHistory.slice(-12);
+      }
+    }
+
+    async function handleCourseChatSubmit(event) {
+      event.preventDefault();
+
+      const input = document.getElementById('course-chat-input');
+      const question = normalizeText(input && input.value);
+      if (!question) return;
+
+      if (!userApiKey) {
+        setCourseChatError(true);
+        return;
+      }
+
+      setCourseChatError(false);
+      if (input) input.value = '';
+      appendCourseChatMessage('user', question);
+      rememberCourseChatMessage('user', question);
+
+      try {
+        const answer = await requestCourseChatAnswer(question);
+        appendCourseChatMessage('assistant', answer);
+        rememberCourseChatMessage('assistant', answer);
+      } catch (error) {
+        const fallback = 'I could not answer that right now. Check your API key and try again.';
+        appendCourseChatMessage('assistant', fallback);
+        rememberCourseChatMessage('assistant', fallback);
+      }
+    }
+
+    function initCourseChat() {
+      if (courseChatInitialized) return;
+
+      const section = document.getElementById('course-chat-section');
+      const toggle = document.getElementById('course-chat-toggle');
+      const form = document.getElementById('course-chat-form');
+
+      if (toggle && section) {
+        toggle.addEventListener('click', () => {
+          const isOpen = section.classList.toggle('is-open');
+          toggle.setAttribute('aria-expanded', String(isOpen));
+        });
+      }
+
+      if (form) {
+        form.addEventListener('submit', handleCourseChatSubmit);
+      }
+
+      courseChatInitialized = true;
+    }
+
+    function recommendationCourseCard(item) {
+      const course = getCourse(item.courseId);
+      const code = course ? courseCode(course) : normalizeText(item.courseId);
+      const title = course ? courseTitle(course) : code;
+      const tags = course ? collectCourseTags(course) : [];
+
+      const card = document.createElement('article');
+      card.className = 'recommendation-card';
+
+      const codeEl = document.createElement('div');
+      codeEl.className = 'course-code';
+      codeEl.textContent = code;
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'course-title';
+      titleEl.textContent = title;
+
+      const reason = document.createElement('p');
+      reason.className = 'recommendation-reason';
+      reason.textContent = item.reason || 'Recommended for this stage of your plan.';
+
+      card.append(codeEl, titleEl, createTagList(tags, tags.length), reason);
+      return card;
+    }
+
+    function renderRecommendationColumn(title, items) {
+      const column = document.createElement('div');
+      column.className = 'recommendation-column';
+
+      const heading = document.createElement('h3');
+      heading.textContent = title;
+      column.appendChild(heading);
+
+      if (!items || !items.length) {
+        const empty = document.createElement('p');
+        empty.className = 'empty-tray';
+        empty.textContent = 'No courses suggested for this semester.';
+        column.appendChild(empty);
+        return column;
+      }
+
+      items.forEach((item) => column.appendChild(recommendationCourseCard(item)));
+      return column;
+    }
+
+    function renderAIRecommendations(recommendations) {
+      const results = document.getElementById('ai-results');
+      if (!results) return;
+
+      results.innerHTML = '';
+
+      const summary = document.createElement('p');
+      summary.className = 'ai-summary';
+      summary.textContent = recommendations.summary || 'Here is a focused two-semester plan based on your profile.';
+
+      const grid = document.createElement('div');
+      grid.className = 'recommendation-grid';
+      grid.append(
+        renderRecommendationColumn('Next Semester', recommendations.semester1 || []),
+        renderRecommendationColumn('Semester After', recommendations.semester2 || [])
+      );
+
+      const actions = document.createElement('div');
+      actions.className = 'ai-actions';
+
+      const addButton = document.createElement('button');
+      addButton.className = 'add-recommendations-button';
+      addButton.type = 'button';
+      addButton.textContent = 'Add these to my grid \u2192';
+      addButton.addEventListener('click', addRecommendationsToGrid);
+      actions.appendChild(addButton);
+
+      results.append(summary, grid, actions);
+    }
+
+    function nextAvailableSemesterTargets() {
+      const emptySemesters = SEMESTERS.filter((semester) => {
+        return !plannerState.some((entry) => entry.year === semester.year && entry.semester === semester.semester);
+      });
+      const openSemesters = SEMESTERS.filter((semester) => {
+        return plannerState.filter((entry) => entry.year === semester.year && entry.semester === semester.semester).length < 6;
+      });
+      const candidates = emptySemesters.length >= 2 ? emptySemesters : openSemesters;
+      return [candidates[0] || SEMESTERS[0], candidates[1] || candidates[0] || SEMESTERS[1]];
+    }
+
+    function addRecommendationSet(items, targetSemester) {
+      (items || []).forEach((item) => {
+        if (!item || !item.courseId || !getCourse(item.courseId)) return;
+        const count = plannerState.filter(
+          (entry) => entry.year === targetSemester.year && entry.semester === targetSemester.semester
+        ).length;
+        if (count < 6) {
+          placeCourse(item.courseId, targetSemester.year, targetSemester.semester);
+        }
+      });
+    }
+
+    function addRecommendationsToGrid() {
+      if (!latestRecommendations) return;
+      const [semester1, semester2] = nextAvailableSemesterTargets();
+      addRecommendationSet(latestRecommendations.semester1 || [], semester1);
+      addRecommendationSet(latestRecommendations.semester2 || [], semester2);
+      renderPlanner();
+      document.getElementById('four-year-semester-grid')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+
+    function populateSelect(select, items, placeholderLabel) {
+      if (!select) return;
+      select.innerHTML = '';
+
+      if (placeholderLabel != null) {
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = placeholderLabel;
+        select.appendChild(placeholder);
+      }
+
+      items.forEach((item) => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = item.label;
+        select.appendChild(option);
+      });
+    }
+
+    function renderCompletedCourseChecklist() {
+      const list = document.getElementById('completed-course-list');
+      if (!list) return;
+
+      const query = completedCourseSearch.toLowerCase();
+      const filtered = plannerCourses.filter((course) => {
+        const haystack = `${courseCode(course)} ${courseTitle(course)}`.toLowerCase();
+        return !query || haystack.includes(query);
+      });
+
+      list.innerHTML = '';
+      filtered.forEach((course) => {
+        const code = courseCode(course);
+        const option = document.createElement('label');
+        option.className = 'completed-option';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = code;
+        checkbox.checked = completedCourseSelections.has(code);
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            completedCourseSelections.add(code);
+          } else {
+            completedCourseSelections.delete(code);
+          }
+        });
+
+        const text = document.createElement('span');
+        text.className = 'completed-course-text';
+        const strong = document.createElement('strong');
+        strong.textContent = code;
+        text.append(strong, ` ${courseTitle(course)}`);
+
+        option.append(checkbox, text);
+        list.appendChild(option);
+      });
+
+      if (!filtered.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-tray';
+        empty.textContent = 'No completed courses match this search.';
+        list.appendChild(empty);
+      }
+    }
+
+    function getCompletedCourseValues() {
+      return Array.from(completedCourseSelections);
+    }
+
+    async function initProfileForm() {
+      if (!plannerCourses.length) {
+        plannerCourses = normalizeCourses(window.UNI && window.UNI.courses);
+      }
+
+      const form = document.getElementById('profile-form');
+      const majorSelect = document.getElementById('intended-major');
+      const minorSelect = document.getElementById('intended-minor');
+      const completedSearch = document.getElementById('completed-course-search');
+      const majorError = document.getElementById('major-error');
+
+      populateSelect(majorSelect, normalizeOptionList(window.UNI && window.UNI.majors), 'Select a major');
+      populateSelect(minorSelect, normalizeOptionList(window.UNI && window.UNI.minors), 'None');
+
+      if (sharedPlanFromHash && sharedPlanFromHash.studentProfile) {
+        const profile = sharedPlanFromHash.studentProfile;
+        const nameInput = document.getElementById('student-name');
+        const classYearSelect = document.getElementById('class-year');
+        const interestsInput = document.getElementById('academic-interests');
+
+        if (nameInput) nameInput.value = profile.name || '';
+        if (classYearSelect) classYearSelect.value = profile.classYear || 'First Year';
+        if (majorSelect && profile.intendedMajor) majorSelect.value = profile.intendedMajor.id || '';
+        if (minorSelect && profile.intendedMinor) minorSelect.value = profile.intendedMinor.id || '';
+        if (interestsInput) interestsInput.value = profile.academicInterests || '';
+        completedCourseSelections = new Set(profile.completedCourses || []);
+        window.studentProfile = profile;
+        window.selectedMajor = profile.intendedMajor && profile.intendedMajor.id ? profile.intendedMajor.id : '';
+      }
+
+      renderCompletedCourseChecklist();
+      updatePrintHeader();
+
+      if (completedSearch) {
+        completedSearch.addEventListener('input', (event) => {
+          completedCourseSearch = event.target.value;
+          renderCompletedCourseChecklist();
+        });
+      }
+
+      if (majorSelect && majorError) {
+        majorSelect.addEventListener('change', () => {
+          majorError.classList.toggle('is-visible', !majorSelect.value);
+        });
+      }
+
+      if (form) {
+        form.addEventListener('submit', async (event) => {
+          event.preventDefault();
+
+          if (!majorSelect || !majorSelect.value) {
+            if (majorError) majorError.classList.add('is-visible');
+            if (majorSelect) majorSelect.focus();
+            return;
+          }
+
+          const selectedMajor = normalizeOptionList(window.UNI && window.UNI.majors)
+            .find((item) => item.id === majorSelect.value);
+          const selectedMinor = normalizeOptionList(window.UNI && window.UNI.minors)
+            .find((item) => item.id === (minorSelect ? minorSelect.value : ''));
+
+          window.studentProfile = {
+            name: normalizeText(document.getElementById('student-name')?.value),
+            classYear: document.getElementById('class-year')?.value || 'First Year',
+            intendedMajor: {
+              id: majorSelect.value,
+              label: selectedMajor ? selectedMajor.label : majorSelect.value
+            },
+            intendedMinor: minorSelect && minorSelect.value
+              ? { id: minorSelect.value, label: selectedMinor ? selectedMinor.label : minorSelect.value }
+              : null,
+            completedCourses: getCompletedCourseValues(),
+            academicInterests: normalizeText(document.getElementById('academic-interests')?.value)
+          };
+
+          window.selectedMajor = window.studentProfile.intendedMajor.id;
+          updatePrintHeader();
+          await initAIPanel(window.studentProfile);
+          document.getElementById('ai-recommendation-panel')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        });
+      }
+    }
+
+    async function initSemesterGrid() {
+      plannerCourses = normalizeCourses(window.UNI && window.UNI.courses);
+      const sharedCourses = sharedPlanFromHash && Array.isArray(sharedPlanFromHash.placedCourses)
+        ? sharedPlanFromHash.placedCourses
+        : null;
+      plannerState = (sharedCourses || loadPlan()).filter((entry) => getCourse(entry.courseId));
+
+      populateFilterOptions();
+
+      const search = document.getElementById('course-search');
+      const filter = document.getElementById('course-filter');
+
+      if (search) {
+        search.addEventListener('input', (event) => {
+          currentSearch = event.target.value;
+          renderCourseTray();
+        });
+      }
+
+      if (filter) {
+        filter.addEventListener('change', (event) => {
+          currentFilter = event.target.value;
+          renderCourseTray();
+        });
+      }
+
+      document.getElementById('export-plan-button')?.addEventListener('click', () => {
+        updatePrintHeader();
+        window.print();
+      });
+
+      document.getElementById('share-plan-button')?.addEventListener('click', () => {
+        sharePlan().catch(() => showToast('Link copied to clipboard!'));
+      });
+
+      document.getElementById('mobile-add-course')?.addEventListener('click', () => {
+        document.body.classList.toggle('is-course-drawer-open');
+      });
+
+      renderPlanner();
+    }
+
+    async function initAIPanel(studentProfile) {
+      const keyInput = document.getElementById('openai-api-key');
+
+      if (!aiPanelInitialized && keyInput) {
+        keyInput.addEventListener('input', (event) => {
+          userApiKey = event.target.value;
+          setAIError('api-key-error', !userApiKey && Boolean(window.studentProfile));
+        });
+        // Provider tab switching
+        document.querySelectorAll('.provider-tab').forEach(tab => {
+          tab.addEventListener('click', () => {
+            document.querySelectorAll('.provider-tab').forEach(t => t.classList.remove('is-active'));
+            tab.classList.add('is-active');
+            aiProvider = tab.dataset.provider;
+            document.querySelectorAll('.provider-hint').forEach(h => h.style.display = 'none');
+            const hint = document.getElementById('provider-hint-' + aiProvider);
+            if (hint) hint.style.display = '';
+            // Update placeholder
+            const placeholders = { openai: 'sk-proj-...', gemini: 'AIza...', claude: 'sk-ant-...' };
+            const labels = { openai: 'Your OpenAI API Key', gemini: 'Your Gemini API Key', claude: 'Your Anthropic API Key' };
+            keyInput.placeholder = placeholders[aiProvider] || 'API key...';
+            const lbl = document.getElementById('api-key-label');
+            if (lbl) lbl.textContent = labels[aiProvider] || 'Your API Key';
+            userApiKey = '';
+            keyInput.value = '';
+          });
+        });
+        aiPanelInitialized = true;
+      }
+
+      if (!studentProfile) return;
+
+      setAIError('api-key-error', false);
+      setAIError('ai-api-error', false);
+
+      if (!userApiKey) {
+        setAIError('api-key-error', true);
+        return;
+      }
+
+      const results = document.getElementById('ai-results');
+      if (results) results.innerHTML = '';
+      setAILoading(true);
+
+      try {
+        latestRecommendations = await requestAIRecommendations(studentProfile);
+        renderAIRecommendations(latestRecommendations);
+      } catch (error) {
+        latestRecommendations = null;
+        if (results) {
+          results.innerHTML = '<p class="placeholder">Recommendations could not be generated. Your existing plan is unchanged.</p>';
+        }
+        setAIError('ai-api-error', true);
+      } finally {
+        setAILoading(false);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetch('./university.json')
+        .then((response) => {
+          if (!response.ok) throw new Error('Could not load university.json');
+          return response.json();
+        })
+        .then(async (data) => {
+          window.UNI = data;
+          sharedPlanFromHash = readSharedPlanFromHash();
+          console.log('Data loaded ' + (data && data._meta && data._meta.name ? data._meta.name : ''));
+
+          await initProfileForm();
+          await initSemesterGrid();
+          await initAIPanel();
+          initCourseChat();
+        })
+        .catch((error) => {
+          console.error(error);
+          document.body.insertAdjacentHTML(
+            'afterbegin',
+            '<div class="ai-error is-visible" style="display:block;padding:12px 28px;">Could not load university data. Check that university.json is available and try again.</div>'
+          );
+        });
+    });
+  </script>
+</body>
+</html>
